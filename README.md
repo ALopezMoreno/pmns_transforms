@@ -47,36 +47,38 @@ Install from source
 ## Quick start
 
 ```python
-import numpy as np
-from pmns_transforms.core import get_mixing_matrix, get_parameters, transform, get_Jarlskog
+import pmns_transforms as pmns
 
 # Example angles (radians)
 th12, th23, th13 = 0.59, 0.79, 0.15
 dcp = 0.30
 
 # 1) Build the PMNS matrix in the canonical e3 parameterisation
-U = get_mixing_matrix('e3', th12, th23, th13, dcp)  # shape (3, 3)
+U = pmns.get_mixing_matrix('e3', th12, th23, th13, dcp)  # shape (3, 3)
 
 # 2) Extract angles under a different parameterisation (e.g., mu1)
 #    original_parameterisation informs the phase/sign convention of U
-rec_th12, rec_th23, rec_th13, rec_dcp = get_parameters('mu1', U, original_parameterisation='e3')
+rec_th12, rec_th23, rec_th13, rec_dcp = pmns.get_parameters('mu1', U, original_parameterisation='e3')
 
 # 3) Transform angles directly between parameterisations
-new_th12, new_th23, new_th13, new_dcp = transform('e3', 'mu1', th12, th23, th13, dcp)
+new_th12, new_th23, new_th13, new_dcp = pmns.transform('e3', 'mu1', th12, th23, th13, dcp)
 
 # 4) Compute the Jarlskog invariant (broadcasted over inputs)
-Jcp = get_Jarlskog(th12, th23, th13, dcp)
+Jcp = pmns.get_Jarlskog(th12, th23, th13, dcp)
 ```
 
-### Broadcasting example
+Vectorised example (the user constructs arrays with NumPy):
 ```python
+import numpy as np
+import pmns_transforms as pmns
+
 # Vectorised inputs broadcast automatically
 th12 = np.linspace(0.2, 1.3, 1000)
 th23 = 0.80
 th13 = 0.15
 dcp  = np.linspace(-np.pi, np.pi, 1000)
 
-U_all = get_mixing_matrix('e2', th12, th23, th13, dcp)  # shape (3, 3, 1000)
+U_all = pmns.get_mixing_matrix('e2', th12, th23, th13, dcp)  # shape (3, 3, 1000)
 ```
 
 ## API summary
