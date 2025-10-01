@@ -1,0 +1,12 @@
+# Ignore plotting and test scripts
+/scripts/
+/tests/
+/figures/
+.pytest_cache/
+.qodo/
+plot_parameterisation_distributions.py
+plot_parameterisation_distributions_to_e3.py
+plot_parameterisation_distributions_temp.py
+compare_temp_core.py
+temp.py
+test_roundtrip_parameterisations.py

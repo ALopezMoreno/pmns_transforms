@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "pmns-transforms"
+version = "0.1.0"
+description = "PMNS matrix parameterisation conversions for neutrino oscillation analysis as described in https://arxiv.org/abs/2507.02101."
+authors = [{name = "Andres Lopez Moreno", email = "andres.lopezmoreno@lapp.in2p3.fr"}]
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "GPL-3.0-or-later"}
+
+keywords = ["neutrino", "pmns", "physics", "reparameterization", "reparameterisation", "jarlskog"]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9", 
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+# Single dependency - only numpy for numerical operations
+dependencies = [
+    "numpy>=1.21",  # Matrix operations and numerical computations
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
