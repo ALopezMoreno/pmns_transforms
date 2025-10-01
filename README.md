@@ -85,7 +85,7 @@ U_all = get_mixing_matrix('e2', th12, th23, th13, dcp)  # shape (3, 3, 1000)
   - Builds U under the chosen parameterisation. Returns (3,3) or (3,3,*broadcast_shape).
 
 - get_parameters(target_parameterisation, mixing_matrix, original_parameterisation='e3') → (th12, th23, th13, dcp)
-  - Extracts angles/phase under target_parameterisation, assuming mixing_matrix was built using original_parameterisation. Handles non-identifiable regimes via NaN, and sign/branch choices as documented above.
+  - Extracts angles/phase under target_parameterisation, assuming mixing_matrix was built using original_parameterisation. Handles non-identifiable regimes via NaN, and sign choices as documented below.
 
 - transform(original_parameterisation, target_parameterisation, th12, th23, th13, dcp) → (new_th12, new_th23, new_th13, new_dcp)
   - Convenience wrapper: build → extract.
