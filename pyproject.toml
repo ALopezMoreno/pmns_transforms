@@ -32,6 +32,11 @@ dependencies = [
     "numpy>=1.21",  # Matrix operations and numerical computations
 ]
 
+[project.optional-dependencies]
+examples = [
+    "matplotlib>=3.5",
+]
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
