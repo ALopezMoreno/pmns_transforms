@@ -105,6 +105,13 @@ U_all = pmns.get_mixing_matrix('e2', th12, th23, th13, dcp)  # shape (3, 3, 1000
 
 - Shape checks: get_parameters coerces the input matrix to an ndarray and validates a leading 3×3 shape.
 
+
+## Example script
+
+The package comes with an example script that reproduces figure 6 of arXiv:2507.02101, plotting the 1D projections of the uniform priors of every parameterisation onto the standard parameters. It requires matplotlib.
+- To run it: `python examples/plot_taitBryanPriors.py`.
+- Output: *figure dists_overlaid_to_standard.png*
+
 ## Citing
 
 If you use this package in your work, please cite following paper:
