@@ -2,7 +2,7 @@
 
 A lightweight scientific Python library to build, transform, and analyse PMNS mixing matrices across nine Tait–Bryan parameterisations that privilege specific flavour/mass symmetries.
 
-This codebase is based on and aligned with the framework developed #$in Testing T2K’s Bayesian constraints with priors in alternate parameterisations (arXiv:2507.02101)$#
+This codebase is based on and aligned with the framework developed in **Testing T2K’s Bayesian constraints with priors in alternate parameterisations (arXiv:2507.02101).**
 
 The library implements a numerically stable, vectorised API to:
 - construct a PMNS matrix for any of the nine parameterisations;
@@ -14,7 +14,7 @@ The library implements a numerically stable, vectorised API to:
 
 - Parameterisations are identified by strings in {e, mu, tau}{1,2,3}, for example: e3 (canonical/PDG-like), mu1, tau2, etc.
 - Each string indicates the “single element” index (the one equal to s13 e^{-i δ}) and thereby fixes the row/column symmetries privileged by that parameterisation (as in the paper’s promoted row–column symmetry).
-- See appendix A of arXiv:2507.02101 to identify parameterisations with the corresponding row/column symmetries and their matrix form.
+- **See appendix A of arXiv:2507.02101 to identify parameterisations with the corresponding row/column symmetries and their matrix form.**
 
 ## Conventions and ranges
 
@@ -106,7 +106,7 @@ U_all = get_mixing_matrix('e2', th12, th23, th13, dcp)  # shape (3, 3, 1000)
 ## Citing
 
 If you use this package in your work, please cite following paper:
-- Testing T2K’s Bayesian constraints with priors in alternate parameterisations, arXiv:2507.02101.
+- Testing T2K’s Bayesian constraints with priors in alternate parameterisations: arXiv:2507.02101.
 
 ## License
 
