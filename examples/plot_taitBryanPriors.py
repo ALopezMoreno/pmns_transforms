@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 
 from pmns_transforms.core import transform, get_Jarlskog
 
+# e3 is the standard (target) parameterisation and is excluded as a source.
 SOURCES = ['e1', 'e2', 'mu1', 'mu2', 'mu3', 'tau1', 'tau2', 'tau3']
 
 # Labels from the convention in arxiv:2507.02101

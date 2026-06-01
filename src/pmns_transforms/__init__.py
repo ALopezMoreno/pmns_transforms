@@ -1,3 +1,5 @@
+"""pmns_transforms — PMNS mixing matrix transformations across nine Tait–Bryan parameterisations."""
+
 __version__ = "0.1.0"
 
 # Import the main functions to make them available at package level

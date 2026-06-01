@@ -1,3 +1,5 @@
+"""Round-trip and edge-case tests for all 9×9 parameterisation pairs and public API error paths."""
+
 import numpy as np
 import pytest
 
