@@ -27,8 +27,8 @@ import numpy as np
 import numpy.typing as npt
 from typing import Tuple
 
-_EPS_C13 = 1e-12      # c13 threshold below which θ12/θ23 are non-identifiable
-_EPS_IMDELTA = 1e-14  # |Im(U_single)| threshold for treating sin(δ) as zero
+_EPS_C13 = 1e-12   # c13 threshold below which θ12/θ23 are non-identifiable
+_EPS_DCP = 1e-14   # |Im(U_single)| threshold for treating sin(δ) as zero
 
 # Single indexes of parameterisations (position of the simple element in U_PMNS). The labels correspond
 # to the promoted row-column symmetry as given in https://arxiv.org/abs/2507.02101
@@ -312,7 +312,7 @@ def get_parameters(target_parameterisation: str, mixing_matrix: npt.ArrayLike, o
 
     # Determine delta: if sin δ ≈ 0, choose 0 or π from cos δ; otherwise use sign from Im(U_single).
     sign_im = np.sign(imPart)
-    signless = np.abs(imPart) <= _EPS_IMDELTA
+    signless = np.abs(imPart) <= _EPS_DCP
 
     dcp_valid = np.where(
         signless,
