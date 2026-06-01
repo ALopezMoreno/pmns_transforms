@@ -4,6 +4,7 @@
 .pytest_cache/
 .qodo/
 *.egg-info/
+__pycache__/
 plot_parameterisation_distributions.py
 plot_parameterisation_distributions_to_e3.py
 plot_parameterisation_distributions_temp.py
