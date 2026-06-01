@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
-"""Overlay distributions over the square sines of the angles after transforming into the standard parameterisation from all other parameterisations.
+"""Overlay uniform prior distributions of all non-standard parameterisations mapped to e3.
 
 This script:
-- Samples uniformly in s12^2, s23^2, s13^2 ∈ [0, 1] and δ ∈ (−π, π].
-- Treats the sampled angles as belonging to each of the eight non-standard parameterisations, 
-  transforms them to the standard, and overlays histograms for comparison.
-- Plots sin^2(θ12), sin^2(θ23), sin^2(θ13), δ, and Jarlskog invariant Jcp.
-- Reproduces (at a rough level) Figure 6 of arXiv:2507.02101
+- Samples uniformly in sin²θ12, sin²θ23, sin²θ13 ∈ [0, 1] and δ ∈ (−π, π].
+- Treats the sampled angles as belonging to each of the eight non-e3 parameterisations,
+  transforms them to e3, and overlays histograms for comparison.
+- Plots sin²θ12, sin²θ23, sin²θ13, δ, and the Jarlskog invariant Jcp.
+- Reproduces (at a rough level) Figure 6 of arXiv:2507.02101.
 
 Run:
-- python examples/plot_taitBryanPriors.py
-- Output saved to dists_overlaid_to_standard.png
+    python examples/plot_taitBryanPriors.py
+    Output saved to dists_overlaid_to_standard.png
 """
 
 from __future__ import annotations
 
 import pathlib
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pmns_transforms.core import transform, get_Jarlskog
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'src'))
+
+from pmns_transforms.core import transform, get_Jarlskog  # noqa: E402
 
 # e3 is the standard (target) parameterisation and is excluded as a source.
 SOURCES = ['e1', 'e2', 'mu1', 'mu2', 'mu3', 'tau1', 'tau2', 'tau3']
@@ -105,11 +109,11 @@ def plot_overlaid_distributions_to_e3(n: int = 1_000_000, seed: int = 0, outpath
         ax_j.hist(jcp[mj], bins=bins_j, histtype='step', density=True, label=label, color=color, alpha=0.95, linestyle=ls, linewidth=lw)
 
     # Labels and titles
-    ax_s12.set_title('sin²(θ12) in e3')
-    ax_s23.set_title('sin²(θ23) in e3')
-    ax_s13.set_title('sin²(θ13) in e3')
-    ax_d.set_title('δ [rad] in e3')
-    ax_j.set_title('Jarlskog Jcp in e3')
+    ax_s12.set_title('sin²(θ12)')
+    ax_s23.set_title('sin²(θ23)')
+    ax_s13.set_title('sin²(θ13)')
+    ax_d.set_title('δ [rad]')
+    ax_j.set_title('Jarlskog Jcp')
 
     for ax in [ax_s12, ax_s23, ax_s13]:
         ax.set_xlim(0, 1)
@@ -123,7 +127,7 @@ def plot_overlaid_distributions_to_e3(n: int = 1_000_000, seed: int = 0, outpath
     handles, labels = ax_s12.get_legend_handles_labels()
     ax_unused.legend(handles, labels, loc='center', ncol=2, fontsize='small', frameon=False, title='Source parameterisations')
 
-    fig.suptitle('Overlaid distributions after transforming the standard parameterisation (e3)', y=0.98)
+    fig.suptitle('Uniform priors from each non-e3 parameterisation mapped into e3', y=0.98)
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     fig.savefig(out, dpi=150)
     plt.close(fig)

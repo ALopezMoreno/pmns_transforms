@@ -363,6 +363,152 @@ def transform(original_parameterisation: str, target_parameterisation: str, th12
     return new_th12, new_th23, new_th13, new_dcp
 
 
+def get_jacobian(
+    original_parameterisation: str,
+    target_parameterisation: str,
+    th12: npt.ArrayLike,
+    th23: npt.ArrayLike,
+    th13: npt.ArrayLike,
+    dcp: npt.ArrayLike,
+    h: float = 1e-5,
+) -> np.ndarray:
+    """Compute the 4×4 Jacobian of the parameterisation transform at a point.
+
+    Uses central finite differences. Element [i, j] of the returned matrix is
+    ∂output_i/∂input_j, where the parameter ordering is (θ12, θ23, θ13, δ).
+
+    For importance-weight reweighting — making a uniform distribution in
+    ``original_parameterisation`` uniform in ``target_parameterisation`` —
+    the weight for each sample is proportional to |det J| (see ``get_weights``).
+
+    Parameters
+    ----------
+    original_parameterisation : str
+        Source parameterisation of the input angles.
+    target_parameterisation : str
+        Target parameterisation for the output angles.
+    th12, th23, th13 : array-like
+        Mixing angles θ12, θ23, θ13 in radians, values in [0, π/2].
+    dcp : array-like
+        Dirac CP phase δ in radians, values in (−π, π].
+    h : float, optional
+        Step size for central finite differences. Default 1e-5 is robust for
+        angles in this domain; reduce to ~1e-6 for higher accuracy at the cost
+        of increased susceptibility to cancellation error.
+
+    Returns
+    -------
+    numpy.ndarray
+        Real array of shape (4, 4) for scalar inputs, or (4, 4, *broadcast_shape)
+        for array inputs.
+
+    Notes
+    -----
+    Results are unreliable near the non-smooth points of ``get_parameters``:
+    th13 ≈ π/2 (c13 ≈ 0) and δ ≈ 0 or ±π.
+    """
+    th12 = np.asarray(th12, dtype=float)
+    th23 = np.asarray(th23, dtype=float)
+    th13 = np.asarray(th13, dtype=float)
+    dcp = np.asarray(dcp, dtype=float)
+
+    th12, th23, th13, dcp = np.broadcast_arrays(th12, th23, th13, dcp)
+    broadcast_shape = th12.shape
+    scalar_input = broadcast_shape == ()
+
+    params = [th12, th23, th13, dcp]
+    J = np.zeros((4, 4) + broadcast_shape)
+
+    for j, p in enumerate(params):
+        p_plus = list(params)
+        p_plus[j] = p + h
+        p_minus = list(params)
+        p_minus[j] = p - h
+
+        out_plus = transform(original_parameterisation, target_parameterisation, *p_plus)
+        out_minus = transform(original_parameterisation, target_parameterisation, *p_minus)
+
+        for i in range(3):
+            J[i, j] = (np.asarray(out_plus[i]) - np.asarray(out_minus[i])) / (2.0 * h)
+
+        # Wrap δ difference to (−π, π] to handle branch-cut crossings near ±π
+        dcp_diff = np.asarray(out_plus[3]) - np.asarray(out_minus[3])
+        dcp_diff = (dcp_diff + np.pi) % (2.0 * np.pi) - np.pi
+        J[3, j] = dcp_diff / (2.0 * h)
+
+    if scalar_input:
+        return J.reshape(4, 4)
+    return J
+
+
+def get_weights(
+    original_parameterisation: str,
+    target_parameterisation: str,
+    th12: npt.ArrayLike,
+    th23: npt.ArrayLike,
+    th13: npt.ArrayLike,
+    dcp: npt.ArrayLike,
+    h: float = 1e-5,
+) -> np.ndarray:
+    """Compute importance weights for reweighting to a uniform-in-sin²θ target distribution.
+
+    Returns |det J_{sin²}| at each point, where J_{sin²} is the Jacobian of the
+    full transformation
+
+        (sin²θ12, sin²θ23, sin²θ13, δ)_orig  →  (sin²θ12, sin²θ23, sin²θ13, δ)_tgt
+
+    By the chain rule this factorises as:
+
+        |det J_{sin²}| = |det J_θθ| × sin(2θ12_tgt) sin(2θ23_tgt) sin(2θ13_tgt)
+                                     / ( sin(2θ12_orig) sin(2θ23_orig) sin(2θ13_orig) )
+
+    where |det J_θθ| is the θ→θ Jacobian from ``get_jacobian``.
+
+    Samples drawn uniformly in (sin²θ12, sin²θ23, sin²θ13, δ) in the original
+    parameterisation, reweighted by these values, represent a uniform distribution
+    in (sin²θ12, sin²θ23, sin²θ13, δ) in the target parameterisation.
+
+    Parameters
+    ----------
+    original_parameterisation : str
+        Parameterisation in which the input samples are uniform in sin²θ.
+    target_parameterisation : str
+        Parameterisation in which the reweighted samples should be uniform in sin²θ.
+    th12, th23, th13 : array-like
+        Mixing angles in radians, values in [0, π/2].
+    dcp : array-like
+        Dirac CP phase in radians, values in (−π, π].
+    h : float, optional
+        Step size passed to ``get_jacobian``. Default 1e-5.
+
+    Returns
+    -------
+    numpy.ndarray
+        Real array with the broadcasted shape of the inputs (scalar for scalar
+        inputs). Values of inf or NaN indicate singular or ill-conditioned points.
+    """
+    th12 = np.asarray(th12, dtype=float)
+    th23 = np.asarray(th23, dtype=float)
+    th13 = np.asarray(th13, dtype=float)
+
+    J = get_jacobian(original_parameterisation, target_parameterisation, th12, th23, th13, dcp, h)
+    J_t = np.moveaxis(J, [0, 1], [-2, -1])
+    det_theta = np.abs(np.linalg.det(J_t))
+
+    new_th12, new_th23, new_th13, _ = transform(
+        original_parameterisation, target_parameterisation, th12, th23, th13, dcp
+    )
+
+    sin2_orig = np.sin(2.0 * th12) * np.sin(2.0 * th23) * np.sin(2.0 * th13)
+    sin2_tgt = (
+        np.sin(2.0 * np.asarray(new_th12, dtype=float))
+        * np.sin(2.0 * np.asarray(new_th23, dtype=float))
+        * np.sin(2.0 * np.asarray(new_th13, dtype=float))
+    )
+
+    return det_theta * sin2_tgt / sin2_orig
+
+
 def get_Jarlskog(th12: npt.ArrayLike, th23: npt.ArrayLike, th13: npt.ArrayLike, dcp: npt.ArrayLike) -> np.ndarray:
     """Compute the Jarlskog invariant Jcp.
 
