@@ -27,6 +27,9 @@ import numpy as np
 import numpy.typing as npt
 from typing import Tuple
 
+_EPS_C13 = 1e-12      # c13 threshold below which θ12/θ23 are non-identifiable
+_EPS_IMDELTA = 1e-14  # |Im(U_single)| threshold for treating sin(δ) as zero
+
 # Single indexes of parameterisations (position of the simple element in U_PMNS). The labels correspond
 # to the promoted row-column symmetry as given in https://arxiv.org/abs/2507.02101
 
@@ -274,9 +277,6 @@ def get_parameters(target_parameterisation: str, mixing_matrix: npt.ArrayLike, o
     old_single_index = _set_indices(parsed_original_par[0], parsed_original_par[1])[0]
 
     # Extract magnitudes and compute sines/cosines with numerical safety
-    eps = 1e-12
-    eps2 = 1e-14
-
     imPart = np.asanyarray(mixing_matrix[old_single_index]).imag
 
     s13 = np.abs(mixing_matrix[single_index])
@@ -284,15 +284,15 @@ def get_parameters(target_parameterisation: str, mixing_matrix: npt.ArrayLike, o
     c13 = np.sqrt(np.clip(1.0 - s13 * s13, 0.0, 1.0))
 
     # Safe division by c13 for s12 and s23
-    c13_safe = np.where(c13 > eps, c13, 1.0)
+    c13_safe = np.where(c13 > _EPS_C13, c13, 1.0)
 
     s12_num = np.abs(mixing_matrix[th12_indices[1]])
-    s12 = np.where(c13 > eps, s12_num / c13_safe, np.nan)
+    s12 = np.where(c13 > _EPS_C13, s12_num / c13_safe, np.nan)
     s12 = np.clip(s12, 0.0, 1.0)
     c12 = np.sqrt(np.clip(1.0 - s12 * s12, 0.0, 1.0))
 
     s23_num = np.abs(mixing_matrix[th23_indices[0]])
-    s23 = np.where(c13 > eps, s23_num / c13_safe, np.nan)
+    s23 = np.where(c13 > _EPS_C13, s23_num / c13_safe, np.nan)
     s23 = np.clip(s23, 0.0, 1.0)
     c23 = np.sqrt(np.clip(1.0 - s23 * s23, 0.0, 1.0))
 
@@ -302,7 +302,7 @@ def get_parameters(target_parameterisation: str, mixing_matrix: npt.ArrayLike, o
     term2 = (s12 ** 2) * (c23 ** 2) * (s13 ** 2)
     denom = 2.0 * s12 * c12 * s23 * c23 * s13
 
-    valid = denom > eps
+    valid = denom > _EPS_C13
     denom_safe = np.where(valid, denom, 1.0)
 
     cos_dcp = (compound_element_sq - term1 - term2) / denom_safe
@@ -312,7 +312,7 @@ def get_parameters(target_parameterisation: str, mixing_matrix: npt.ArrayLike, o
 
     # Determine delta: if sin δ ≈ 0, choose 0 or π from cos δ; otherwise use sign from Im(U_single).
     sign_im = np.sign(imPart)
-    signless = np.abs(imPart) <= eps2
+    signless = np.abs(imPart) <= _EPS_IMDELTA
 
     dcp_valid = np.where(
         signless,

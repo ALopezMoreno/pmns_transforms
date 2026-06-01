@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pmns_transforms.core import get_parameters, get_mixing_matrix, transform
+from pmns_transforms.core import get_parameters, get_mixing_matrix, get_Jarlskog, transform
 
 
 PARAMS = ['e1', 'e2', 'e3', 'mu1', 'mu2', 'mu3', 'tau1', 'tau2', 'tau3']
@@ -81,6 +81,38 @@ def test_nan_at_c13_zero(param):
     th12, th23, th13, dcp = get_parameters(param, U, original_parameterisation=param)
     assert np.isnan(th12), f"{param}: expected th12=NaN when c13≈0"
     assert np.isnan(th23), f"{param}: expected th23=NaN when c13≈0"
+
+
+def test_jarlskog_known_value():
+    """Spot-check against the analytic value for symmetric angles."""
+    # All angles = π/4, δ = π/2  →  J = (1/√2)^5 · (1/2) · 1 = 1/(8√2)
+    J = get_Jarlskog(np.pi / 4, np.pi / 4, np.pi / 4, np.pi / 2)
+    assert np.isclose(J, 1.0 / (8.0 * np.sqrt(2)), rtol=1e-12)
+
+
+def test_jarlskog_broadcasting():
+    """get_Jarlskog must broadcast correctly over array inputs."""
+    th = np.linspace(0.1, 1.0, 7)
+    J = get_Jarlskog(th, th, th, np.pi / 2)
+    assert J.shape == (7,)
+    assert not np.isnan(J).any()
+
+
+def test_invalid_parameterisation_raises():
+    """Invalid parameterisation strings must raise ValueError or TypeError."""
+    U = get_mixing_matrix("e3", 0.3, 0.7, 0.15, 1.2)
+    with pytest.raises(ValueError):
+        get_mixing_matrix("x9", 0.3, 0.7, 0.15, 1.2)
+    with pytest.raises(ValueError):
+        get_parameters("bad", U)
+    with pytest.raises(TypeError):
+        get_parameters(42, U)
+
+
+def test_invalid_matrix_shape_raises():
+    """Non-3×3 matrix input to get_parameters must raise ValueError."""
+    with pytest.raises(ValueError):
+        get_parameters("e3", np.ones((2, 2)))
 
 
 @pytest.mark.parametrize("dcp_boundary", [-np.pi, np.pi])

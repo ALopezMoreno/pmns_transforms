@@ -9,21 +9,16 @@ This script:
 - Reproduces (at a rough level) Figure 6 of arXiv:2507.02101
 
 Run:
-- python scripts/plot_taitBryanPriors.py
-- Output saved to .overlaid_taitBryanPriors.png
+- python examples/plot_taitBryanPriors.py
+- Output saved to dists_overlaid_to_standard.png
 """
 
 from __future__ import annotations
 
 import pathlib
-import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-# Import package from src
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'src'))
 
 from pmns_transforms.core import transform, get_Jarlskog
 

@@ -45,3 +45,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501"]
