@@ -392,9 +392,9 @@ def get_jacobian(
     dcp : array-like
         Dirac CP phase δ in radians, values in (−π, π].
     h : float, optional
-        Step size for central finite differences. Default 1e-5 is robust for
-        angles in this domain; reduce to ~1e-6 for higher accuracy at the cost
-        of increased susceptibility to cancellation error.
+        Step size for central finite differences. The default 1e-5 is near-optimal
+        for double precision (optimal h ≈ ε^{1/3} ≈ 6×10⁻⁶); adjust only if the
+        transform varies unusually rapidly or slowly near the evaluation point.
 
     Returns
     -------
@@ -428,7 +428,7 @@ def get_jacobian(
         out_plus = transform(original_parameterisation, target_parameterisation, *p_plus)
         out_minus = transform(original_parameterisation, target_parameterisation, *p_minus)
 
-        for i in range(3):
+        for i in range(3):  # outputs 0–2 (θ12, θ23, θ13); δ (output 3) handled below
             J[i, j] = (np.asarray(out_plus[i]) - np.asarray(out_minus[i])) / (2.0 * h)
 
         # Wrap δ difference to (−π, π] to handle branch-cut crossings near ±π
@@ -490,6 +490,7 @@ def get_weights(
     th12 = np.asarray(th12, dtype=float)
     th23 = np.asarray(th23, dtype=float)
     th13 = np.asarray(th13, dtype=float)
+    dcp = np.asarray(dcp, dtype=float)
 
     J = get_jacobian(original_parameterisation, target_parameterisation, th12, th23, th13, dcp, h)
     J_t = np.moveaxis(J, [0, 1], [-2, -1])
