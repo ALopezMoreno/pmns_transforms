@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pmns-transforms"
-version = "0.1.0"
+version = "1.1.0"
 description = "PMNS matrix parameterisation conversions for neutrino oscillation analysis as described in https://arxiv.org/abs/2507.02101."
 authors = [{name = "Andres Lopez Moreno", email = "andres.lopezmoreno@lapp.in2p3.fr"}]
 readme = "README.md"
