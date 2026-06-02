@@ -8,6 +8,8 @@ The library implements a numerically stable, vectorised API to:
 - construct a PMNS matrix for any of the nine parameterisations;
 - extract the mixing angles and Dirac CP phase from a PMNS matrix under a target parameterisation;
 - transform parameters from one parameterisation to another (composition of the above two);
+- compute the Jacobian of the parameterisation transform via central finite differences;
+- compute importance weights for reweighting a uniform-in-sin²θ prior from one parameterisation to another;
 - compute the Jarlskog invariant.
 
 ## Parameterisation overview
@@ -65,6 +67,16 @@ new_th12, new_th23, new_th13, new_dcp = pmns.transform('e3', 'mu1', th12, th23, 
 
 # 4) Compute the Jarlskog invariant (broadcasted over inputs)
 Jcp = pmns.get_Jarlskog(th12, th23, th13, dcp)
+
+# 5) Compute the 4×4 Jacobian ∂(new params)/∂(old params) via central differences
+J = pmns.get_jacobian('e3', 'mu1', th12, th23, th13, dcp)  # shape (4, 4)
+
+# 6) Compute importance weights to reweight a uniform-in-sin²θ sample from e3 to mu1
+#    Equivalent to |det J_{sin²}| at each point; used for prior reweighting
+import numpy as np
+th12_arr = np.linspace(0.2, 1.3, 500)
+th23_arr, th13_arr, dcp_arr = 0.80, 0.15, 0.30
+weights = pmns.get_weights('e3', 'mu1', th12_arr, th23_arr, th13_arr, dcp_arr)
 ```
 
 Vectorised example (the user constructs arrays with NumPy):
@@ -92,6 +104,12 @@ U_all = pmns.get_mixing_matrix('e2', th12, th23, th13, dcp)  # shape (3, 3, 1000
 - transform(original_parameterisation, target_parameterisation, th12, th23, th13, dcp) → (new_th12, new_th23, new_th13, new_dcp)
   - Convenience wrapper: build → extract.
 
+- get_jacobian(original_parameterisation, target_parameterisation, th12, th23, th13, dcp, h=1e-5) → ndarray
+  - Computes the 4×4 Jacobian ∂(θ12, θ23, θ13, δ)_target / ∂(θ12, θ23, θ13, δ)_orig via central finite differences. Returns shape (4, 4) for scalar inputs or (4, 4, *broadcast_shape) for arrays. Results are unreliable near c13 ≈ 0 or δ ≈ 0, ±π.
+
+- get_weights(original_parameterisation, target_parameterisation, th12, th23, th13, dcp, h=1e-5) → ndarray
+  - Returns |det J_{sin²}| at each point, where J_{sin²} is the Jacobian of (sin²θ12, sin²θ23, sin²θ13, δ)_orig → (sin²θ12, sin²θ23, sin²θ13, δ)_target. Samples drawn uniformly in sin²θ in the original parameterisation and reweighted by these values represent a uniform distribution in the target parameterisation. Values of inf or NaN indicate singular or ill-conditioned points.
+
 - get_Jarlskog(th12, th23, th13, dcp) → ndarray
   - Computes J = s12 c12 s23 c23 s13 c13² sin δ. Returns a real array matching the broadcast shape.
 
@@ -106,11 +124,21 @@ U_all = pmns.get_mixing_matrix('e2', th12, th23, th13, dcp)  # shape (3, 3, 1000
 - Shape checks: get_parameters coerces the input matrix to an ndarray and validates a leading 3×3 shape.
 
 
-## Example script
+## Example scripts
 
-The package comes with an example script that reproduces figure 6 of arXiv:2507.02101, plotting the 1D projections of the uniform priors of every parameterisation onto the standard parameters. It requires matplotlib.
-- To run it: `python examples/plot_taitBryanPriors.py`.
-- Output: `figure dists_overlaid_to_standard.png`.
+The package comes with example scripts that require matplotlib.
+
+**`examples/plot_taitBryanPriors.py`** — reproduces figure 6 of arXiv:2507.02101. Draws samples uniform in sin²θ, treats each sample as belonging to every non-e3 parameterisation in turn, transforms to e3, and overlays the resulting 1D marginals.
+- To run: `python examples/plot_taitBryanPriors.py`
+- Output: `dists_overlaid_to_standard.png`
+
+**`examples/plot_reweighted_marginals.py`** — demonstrates `get_weights`. Draws samples uniform in sin²θ under e3, transforms to each of the nine parameterisations, and applies importance weights. Flat weighted histograms (blue) confirm the weights are correct; orange shows the raw unweighted distribution.
+- To run: `python examples/plot_reweighted_marginals.py`
+- Output: `figures/reweighted_marginals.png`
+
+**`scripts/plot_parameterisation_distributions.py`** — overlays the sin²θ distributions of all nine parameterisations on a single figure, without reweighting, to visualise the support of each prior.
+- To run: `python scripts/plot_parameterisation_distributions.py`
+- Output: `figures/dists_overlaid.png`
 
 ## Citing
 

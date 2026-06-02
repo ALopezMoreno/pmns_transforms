@@ -1,0 +1,20 @@
+{
+  "title": "pmns_transforms: PMNS matrix parameterisation conversions for neutrino oscillation analysis",
+  "description": "A Python package for converting between different PMNS matrix parameterisations for neutrino oscillation analysis, as described in arXiv:2507.02101.",
+  "upload_type": "software",
+  "license": "GPL-3.0-or-later",
+  "creators": [
+    {
+      "name": "Lopez Moreno, Andres",
+      "affiliation": "LAPP"
+    }
+  ],
+  "keywords": [
+    "neutrino",
+    "pmns",
+    "physics",
+    "reparameterization",
+    "reparameterisation",
+    "jarlskog"
+  ]
+}

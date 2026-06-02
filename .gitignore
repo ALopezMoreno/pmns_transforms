@@ -3,8 +3,15 @@
 /figures/
 .pytest_cache/
 .qodo/
+
+# Build and distribution artifacts
+build/
+dist/
 *.egg-info/
 __pycache__/
+
+# Generated example outputs
+*.png
 plot_parameterisation_distributions.py
 plot_parameterisation_distributions_to_e3.py
 plot_parameterisation_distributions_temp.py
